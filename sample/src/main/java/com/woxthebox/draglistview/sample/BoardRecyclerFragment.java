@@ -1,20 +1,5 @@
-/*
- * Copyright 2014 Magnus Woxblom
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.woxthebox.draglistview.sample;
+
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -38,21 +23,26 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.woxthebox.draglistview.BoardRecyclerView;
 import com.woxthebox.draglistview.BoardView;
 import com.woxthebox.draglistview.DragItem;
 
 import java.util.ArrayList;
 
-public class BoardFragment extends Fragment {
 
-    private static final String TAG = BoardFragment.class.getSimpleName();
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class BoardRecyclerFragment extends Fragment {
+
+    private static final String TAG = BoardRecyclerFragment.class.getSimpleName();
 
     private static int sCreatedItems = 0;
-    private BoardView mBoardView;
+    private BoardRecyclerView mBoardView;
     private int mColumns;
 
-    public static BoardFragment newInstance() {
-        return new BoardFragment();
+    public static BoardRecyclerFragment newInstance() {
+        return new BoardRecyclerFragment();
     }
 
     @Override
@@ -63,14 +53,14 @@ public class BoardFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.board_layout, container, false);
+        View view = inflater.inflate(R.layout.fragment_board_recycler, container, false);
 
         mBoardView = view.findViewById(R.id.board_view);
         mBoardView.setSnapToColumnsWhenScrolling(true);
         mBoardView.setSnapToColumnWhenDragging(true);
         mBoardView.setSnapDragItemToTouch(true);
-        mBoardView.setCustomDragItem(new MyDragItem(getActivity(), R.layout.column_item));
-        mBoardView.setCustomColumnDragItem(new MyColumnDragItem(getActivity(), R.layout.column_drag_layout));
+        mBoardView.setCustomDragItem(new BoardRecyclerFragment.MyDragItem(getActivity(), R.layout.column_item));
+        mBoardView.setCustomColumnDragItem(new BoardRecyclerFragment.MyColumnDragItem(getActivity(), R.layout.column_drag_layout));
         mBoardView.setSnapToColumnInLandscape(false);
         mBoardView.setColumnSnapPosition(BoardView.ColumnSnapPosition.CENTER);
         mBoardView.setBoardListener(new BoardView.BoardListener() {

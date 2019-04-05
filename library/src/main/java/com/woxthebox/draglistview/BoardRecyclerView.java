@@ -1,19 +1,3 @@
-/*
- * Copyright 2014 Magnus Woxblom
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.woxthebox.draglistview;
 
 import android.animation.Animator;
@@ -29,24 +13,34 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.Scroller;
 
 import java.util.ArrayList;
 
-import static android.support.v7.widget.RecyclerView.NO_POSITION;
+/**
+ * Created by Ankur on 4/5/2019.
+ */
 
-public class BoardView extends HorizontalScrollView implements AutoScroller.AutoScrollListener {
+public class BoardRecyclerView extends RecyclerView implements AutoScroller.AutoScrollListener {
 
-    private static final String TAG = BoardView.class.getSimpleName();
+    public BoardRecyclerView(Context context) {
+        super(context);
+    }
+
+    public BoardRecyclerView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public BoardRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
 
     public interface BoardCallback {
         boolean canDragItemAtPosition(int column, int row);
@@ -72,7 +66,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
         void onColumnDragEnded(int position);
     }
 
-    public static abstract class BoardListenerAdapter implements BoardListener {
+    public static abstract class BoardListenerAdapter implements BoardView.BoardListener {
         @Override
         public void onItemDragStarted(int column, int row) {
         }
@@ -121,12 +115,12 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
     private DragItemRecyclerView mCurrentRecyclerView;
     private DragItem mDragItem;
     private DragItem mDragColumn;
-    private BoardListener mBoardListener;
-    private BoardCallback mBoardCallback;
+    private BoardView.BoardListener mBoardListener;
+    private BoardView.BoardCallback mBoardCallback;
     private boolean mSnapToColumnWhenScrolling = true;
     private boolean mSnapToColumnWhenDragging = true;
     private boolean mSnapToColumnInLandscape = false;
-    private ColumnSnapPosition mSnapPosition = ColumnSnapPosition.CENTER;
+    private BoardView.ColumnSnapPosition mSnapPosition = BoardView.ColumnSnapPosition.CENTER;
     private int mCurrentColumn;
     private float mTouchX;
     private float mTouchY;
@@ -138,23 +132,10 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
     private boolean mDragEnabled = true;
     private int mLastDragColumn = NO_POSITION;
     private int mLastDragRow = NO_POSITION;
-    private SavedState mSavedState;
-
-    public BoardView(Context context) {
-        super(context);
-    }
-
-    public BoardView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public BoardView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-    }
+    private BoardView.SavedState mSavedState;
 
     @Override
     protected void onFinishInflate() {
-        Log.d(TAG, "onFinishInflate: ");
         super.onFinishInflate();
         Resources res = getResources();
         boolean isPortrait = res.getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
@@ -164,7 +145,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
             mColumnWidth = (int) (res.getDisplayMetrics().density * 320);
         }
 
-        mGestureDetector = new GestureDetector(getContext(), new GestureListener());
+        mGestureDetector = new GestureDetector(getContext(), new BoardRecyclerView.GestureListener());
         mScroller = new Scroller(getContext(), new DecelerateInterpolator(1.1f));
         mAutoScroller = new AutoScroller(getContext(), this);
         mAutoScroller.setAutoScrollMode(snapToColumnWhenDragging() ? AutoScroller.AutoScrollMode.COLUMN : AutoScroller.AutoScrollMode
@@ -174,11 +155,11 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
         mDragColumn.setSnapToTouch(false);
 
         mRootLayout = new FrameLayout(getContext());
-        mRootLayout.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+        mRootLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         mColumnLayout = new LinearLayout(getContext());
         mColumnLayout.setOrientation(LinearLayout.HORIZONTAL);
-        mColumnLayout.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+        mColumnLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT));
         mColumnLayout.setMotionEventSplittingEnabled(false);
 
         mRootLayout.addView(mColumnLayout);
@@ -206,7 +187,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        SavedState ss = (SavedState) state;
+        BoardView.SavedState ss = (BoardView.SavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
         mSavedState = ss;
         requestLayout();
@@ -215,7 +196,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
     @Override
     protected Parcelable onSaveInstanceState() {
         Parcelable superState = super.onSaveInstanceState();
-        return new SavedState(superState, snapToColumnWhenScrolling() ? mCurrentColumn : getClosestSnapColumn());
+        return new BoardRecyclerView.SavedState(superState, snapToColumnWhenScrolling() ? mCurrentColumn : getClosestSnapColumn());
     }
 
     @Override
@@ -697,7 +678,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
     /**
      * @param snapPosition determines what position a column will snap to. LEFT, CENTER or RIGHT.
      */
-    public void setColumnSnapPosition(ColumnSnapPosition snapPosition) {
+    public void setColumnSnapPosition(BoardView.ColumnSnapPosition snapPosition) {
         mSnapPosition = snapPosition;
     }
 
@@ -708,11 +689,11 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
         mDragItem.setSnapToTouch(snapToTouch);
     }
 
-    public void setBoardListener(BoardListener listener) {
+    public void setBoardListener(BoardView.BoardListener listener) {
         mBoardListener = listener;
     }
 
-    public void setBoardCallback(BoardCallback callback) {
+    public void setBoardCallback(BoardView.BoardCallback callback) {
         mBoardCallback = callback;
     }
 
@@ -845,7 +826,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
         recyclerView.setVerticalScrollBarEnabled(false);
         recyclerView.setMotionEventSplittingEnabled(false);
         recyclerView.setDragItem(mDragItem);
-        recyclerView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+        recyclerView.setLayoutParams(new LinearLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setHasFixedSize(hasFixedItemSize);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -912,7 +893,7 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
 
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setLayoutParams(new LayoutParams(mColumnWidth, LayoutParams.MATCH_PARENT));
+        layout.setLayoutParams(new FrameLayout.LayoutParams(mColumnWidth, FrameLayout.LayoutParams.MATCH_PARENT));
         View columnHeader = header;
         if (header == null) {
             columnHeader = new View(getContext());
@@ -994,13 +975,13 @@ public class BoardView extends HorizontalScrollView implements AutoScroller.Auto
             dest.writeInt(currentColumn);
         }
 
-        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
-            public SavedState createFromParcel(Parcel in) {
-                return new SavedState(in);
+        public static final Parcelable.Creator<BoardView.SavedState> CREATOR = new Parcelable.Creator<BoardView.SavedState>() {
+            public BoardView.SavedState createFromParcel(Parcel in) {
+                return new BoardView.SavedState(in);
             }
 
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
+            public BoardView.SavedState[] newArray(int size) {
+                return new BoardView.SavedState[size];
             }
         };
     }
