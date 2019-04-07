@@ -25,7 +25,6 @@ import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -140,16 +139,14 @@ public class BoardFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Board");
+        addColumns();
+    }
 
-        Log.d(TAG, "onActivityCreated: ");
-        for (int i = 0; i < 200; i++) {
+    private void addColumns() {
+        for (int i = 0; i < 201; i++) {
             addColumn();
         }
-        Log.d(TAG, "onActivityCreated: add column done");
-        /*addColumn();
-        addColumn();
-        addColumn();
-        addColumn();*/
+        mBoardView.doneAddingViews();
     }
 
     @Override
